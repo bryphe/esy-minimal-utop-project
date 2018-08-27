@@ -1,0 +1,19 @@
+{
+  "name": "esy-minimal-utop-project",
+  "version": "0.1.0",
+  "description": "Minimal utop project for esy",
+  "license": "MIT",
+  "esy": {
+    "build": [],
+    "buildsInSource": "_build"
+  },
+  "peerDependencies": {
+    "ocaml": "~4.6.0"
+  },
+  "devDependencies": {
+    "ocaml": "~4.6.0"
+  }, 
+  "dependencies": {
+    "@opam/utop": "*"
+  }
+}
