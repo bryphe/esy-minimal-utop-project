@@ -54,13 +54,27 @@
           "archive:https://opam.ocaml.org/archives/utop.2.2.0+opam.tar.gz#md5:0f638cca878347aaae983d79104c34d1",
           "archive:https://github.com/diml/utop/releases/download/2.2.0/utop-2.2.0.tbz#md5:c8e4805883ce27a2ef27b0e4322d6f04"
         ],
-        "files": [],
+        "files": [
+          {
+            "name": "_esy/utop-2.2.0.patch",
+            "content":
+              "--- ./src/lib/uTop_main.ml\n+++ ./src/lib/uTop_main.ml\n@@ -1308,6 +1308,9 @@\n   (* We lost the terminal. *)\n   catch Sys.sighup;\n   (* Termination request. *)\n+  if Sys.win32 && !emacs_mode then\n+    Sys.set_signal Sys.sigterm Sys.Signal_ignore\n+  else\n   catch Sys.sigterm\n \n let load_inputrc () =\n--- ./src/top/expunge/expunge.ml\n+++ ./src/top/expunge/expunge.ml\n@@ -3,7 +3,9 @@\n \n let run_and_read_lines args =\n   let cmd = String.concat ~sep:\" \" (List.map args ~f:Filename.quote) in\n+  let cmd = if Sys.win32 then \"\\\"\" ^ cmd ^ \"\\\"\" else cmd in\n   let ic = Unix.open_process_in cmd in\n+  set_binary_mode_in ic false;\n   let rec loop acc =\n     match input_line ic with\n     | exception End_of_file -> List.rev acc\n@@ -60,6 +62,7 @@\n       (Filename.quote dst)\n       (String.concat ~sep:\" \" (S.elements modules_to_keep))\n   in\n+  let cmdline = if Sys.win32 then \"\\\"\" ^ cmdline ^ \"\\\"\" else cmdline in\n   if verbose then prerr_endline cmdline;\n   exit (Sys.command cmdline)\n \n"
+          }
+        ],
         "opam": {
           "name": "utop",
           "version": "2.2.0",
           "opam":
             "opam-version: \"1.2\"\nname: \"utop\"\nversion: \"2.2.0\"\nmaintainer: \"jeremie@dimino.org\"\nauthors: \"Jérémie Dimino\"\nlicense: \"BSD3\"\nhomepage: \"https://github.com/diml/utop\"\nbug-reports: \"https://github.com/diml/utop/issues\"\ndepends: [\n  \"base-unix\"\n  \"base-threads\"\n  \"ocamlfind\" {>= \"1.7.2\"}\n  \"lambda-term\" {>= \"1.2\"}\n  \"lwt\"\n  \"lwt_react\"\n  \"camomile\"\n  \"react\" {>= \"1.0.0\"}\n  \"cppo\" {build & >= \"1.1.2\"}\n  \"jbuilder\" {build & >= \"1.0+beta9\"}\n]\navailable: ocaml-version >= \"4.02.3\"\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n]\nrun-test: [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/diml/utop.git\"",
-          "override": null
+          "override": {
+            "build": [
+              [
+                "bash", "-c",
+                "#{os == 'windows' ? 'patch -p1 < _esy/utop-2.2.0.patch' : 'true' }"
+              ],
+              [ "jbuilder", "build", "-p", "utop", "-j", "4" ]
+            ]
+          }
         }
       },
       "dependencies": [
